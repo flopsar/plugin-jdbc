@@ -1,0 +1,18 @@
+group 'org.flopsar.ext'
+version '3.0'
+
+apply plugin: 'java'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+
+dependencies {
+    compile 'com.oracle:ojdbc6:11.2.0.4.0-atlassian-hosted'
+}
