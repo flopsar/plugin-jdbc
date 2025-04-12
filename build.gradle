@@ -1,5 +1,5 @@
 group 'org.flopsar.ext'
-version '5.0'
+version '6.0'
 
 apply plugin: 'java'
 
@@ -11,6 +11,9 @@ repositories {
     jcenter()
 }
 
+jar{
+  from sourceSets.main.allSource
+}
 
 dependencies {
     implementation 'com.oracle.database.jdbc:ojdbc8:23.7.0.25.01'
