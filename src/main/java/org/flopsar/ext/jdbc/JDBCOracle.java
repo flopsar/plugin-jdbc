@@ -48,57 +48,62 @@ public class JDBCOracle {
             Field params = null;
 
             try {
-                params = c.getDeclaredField("parameterString");
+                params = c.getDeclaredField("currentRowBinders");
             }
             catch(Throwable t){
                 c = c.getSuperclass();
             }
-
             try {
-                params = c.getDeclaredField("parameterString");
+                params = c.getDeclaredField("currentRowBinders");
             }
             catch(Throwable t){
+                sb.append(PARAMETER_SEPARATOR);
+                sb.append("ERROR");
+                sb.append(PARAMETER_SEPARATOR);
+                sb.append(t.getMessage());
                 return sb.toString();
             }
 
             params.setAccessible(true);
-            String[][] pa = (String[][])params.get(_this);
+            Class currentRowBindersClass = params.getClass();
+            Object[] currentRowBinders = (Object[])params.get(_this);
 
-            if(pa != null){
-                for(int i=0;i<pa.length;i++){
-                    for(int j=0;j<pa[i].length; j++){
-                        if(pa[i][j] == null)
-                            continue;
-                        sb.append(PARAMETER_SEPARATOR);
-                        sb.append(String.format("P_%d",(j+1)));
-                        sb.append(PARAMETER_SEPARATOR);
-                        sb.append(String.format("%s",pa[i][j]));
+            if (currentRowBinders != null){
+                for(int i=0;i<currentRowBinders.length;i++){
+                    Object binder = currentRowBinders[i];
+                    if(binder == null)
+                        continue;
+
+                    sb.append(PARAMETER_SEPARATOR);
+                    sb.append(String.format("P_%d",(i+1)));
+                    sb.append(PARAMETER_SEPARATOR);
+
+                    Class<?> binderClass = binder.getClass();
+                    try {
+                        getValue(sb, binder, binderClass);
+                        continue;
+                    } catch(Throwable tx) {
+                        binderClass = binderClass.getSuperclass();
+                    }
+                    try {
+                        getValue(sb, binder, binderClass);
+                    } catch (Throwable x) {
+                        sb.append("No paramVal: "+ x.getMessage());
                     }
                 }
             }
-
-            params = c.getDeclaredField("parameterInt");
-            params.setAccessible(true);
-            int[][] pi = (int[][])params.get(_this);
-
-            if(pi != null){
-                for(int i=0;i<pi.length;i++){
-                    for(int j=0;j<pi[i].length; j++){
-                        if(pi[i][j] == 0)
-                            continue;
-                        sb.append(PARAMETER_SEPARATOR);
-                        sb.append(String.format("P_%d",(j+1)));
-                        sb.append(PARAMETER_SEPARATOR);
-                        sb.append(String.format("%d",pi[i][j]));
-                    }
-                }
-            }
-
             return sb.toString();
         }
         catch(Throwable ex){
             return "EXCEPTION"+PARAMETER_SEPARATOR+ex.getMessage();
         }
+    }
+
+    private static void getValue(StringBuilder sb, Object binder, Class binderClass) throws Exception {
+        Field paramVal = binderClass.getDeclaredField("paramVal");
+        paramVal.setAccessible(true);
+        Object paramValObj = paramVal.get(binder);
+        sb.append(paramValObj);
     }
 
 }

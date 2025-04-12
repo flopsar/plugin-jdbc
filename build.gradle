@@ -13,5 +13,5 @@ repositories {
 
 
 dependencies {
-    implementation 'com.oracle:ojdbc6:11.2.0.4.0-atlassian-hosted'
+    implementation 'com.oracle.database.jdbc:ojdbc8:23.7.0.25.01'
 }
